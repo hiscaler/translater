@@ -9,6 +9,7 @@ import (
 	"crypto/md5"
 	"io/ioutil"
 	"encoding/hex"
+	"encoding/json"
 )
 
 // 搜狐翻译
@@ -16,6 +17,13 @@ type SohuTranslate struct {
 	Translate
 	PID       string
 	SecretKey string
+}
+
+type SohuResponse struct {
+	Zly         string
+	Query       string
+	Translation string
+	ErrorCode   string
 }
 
 // 翻译处理
@@ -63,7 +71,11 @@ func (t *SohuTranslate) Do() (*SohuTranslate, error) {
 				if err == nil {
 					body, err := ioutil.ReadAll(resp.Body)
 					if err == nil {
-						s = string(body)
+						sohuResponse := &SohuResponse{}
+						err = json.Unmarshal([]byte(body), &sohuResponse)
+						if err == nil && sohuResponse.ErrorCode == "0" {
+							s = sohuResponse.Translation
+						}
 					}
 					resp.Body.Close()
 				}
