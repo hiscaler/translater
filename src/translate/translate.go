@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"io"
 	"fmt"
+	"log"
 )
 
 type IT interface {
@@ -17,12 +18,19 @@ type IT interface {
 
 type Translate struct {
 	IT
+	Debug           bool
 	Doc             *html.Node
 	Nodes           []*html.Node
 	rawContent      string
 	ignoreAtoms     []atom.Atom
 	currentNode     *html.Node
 	currentNodeText string
+}
+
+func NewTranslate(debug bool) *Translate {
+	return &Translate{
+		Debug: debug,
+	}
 }
 
 // 设置要翻译的文本内容
@@ -107,7 +115,10 @@ func (t *Translate) Render() string {
 // 翻译处理
 func (t *Translate) Do() *Translate {
 	for i, node := range t.Nodes {
-		fmt.Println(fmt.Sprintf("#%v: %#v", i+1, t.Anatomy(node)))
+		s := t.Anatomy(node)
+		if t.Debug {
+			log.Println(fmt.Sprintf("#%v: %#v", i+1, s))
+		}
 		t.currentNode.Data = t.currentNodeText
 	}
 

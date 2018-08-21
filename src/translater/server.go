@@ -23,6 +23,8 @@ var (
 type Config struct {
 	Debug      bool
 	ListenPort string
+	PID        string
+	SecretKey  string
 }
 
 type InvalidConfig struct {
@@ -98,18 +100,22 @@ func main() {
 			platform = "sohu"
 		}
 
-		translate := &translate.SohuTranslate{}
+		translate := &translate.SohuTranslate{
+			PID:       cfg.PID,
+			SecretKey: cfg.SecretKey,
+		}
 		_, err := translate.SetRawContent(text).Parse()
 
 		if cfg.Debug {
 			log.Println(text)
 		}
 
+		doc, err := translate.Do()
 		if err == nil {
 			resp := &response.SuccessResponse{
 				Success:    false,
 				RawContent: translate.GetRawContent(),
-				Content:    translate.Do().Render(),
+				Content:    doc.Render(),
 			}
 			return c.Write(resp)
 		} else {
