@@ -19,6 +19,8 @@ type IT interface {
 type Translate struct {
 	IT
 	Debug           bool
+	From            string // 来源语言
+	To              string // 目标语言
 	Doc             *html.Node
 	Nodes           []*html.Node
 	rawContent      string

@@ -91,8 +91,8 @@ func main() {
 	// 翻译文本
 	// POST /api/translate
 	api.Post("/translate", func(c *routing.Context) error {
-		//fromLang := c.Param("from")
-		//toLang := c.Param("to")
+		fromLang := c.Param("from")
+		toLang := c.Param("to")
 		c.Request.ParseForm()
 		text := c.Request.PostFormValue("text")
 		platform := c.Request.PostFormValue("platform")
@@ -100,9 +100,20 @@ func main() {
 			platform = "sohu"
 		}
 
+		t := translate.Translate{
+			From: "zh-CHS",
+			To:   "en",
+		}
+		if len(fromLang) == 0 {
+			t.From = fromLang
+		}
+		if len(toLang) == 0 {
+			t.To = toLang
+		}
 		translate := &translate.SohuTranslate{
 			PID:       cfg.PID,
 			SecretKey: cfg.SecretKey,
+			Translate: t,
 		}
 		translate.SetRawContent(text).Parse()
 

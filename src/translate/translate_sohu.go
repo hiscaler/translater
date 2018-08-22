@@ -52,8 +52,8 @@ func (t *SohuTranslate) Do() (*SohuTranslate, error) {
 			sign := hex.EncodeToString(mdx.Sum(nil))
 			fields := map[string]string{
 				"q":    s,
-				"from": "zh-CHS",
-				"to":   "en",
+				"from": t.From,
+				"to":   t.To,
 				"pid":  pid,
 				"salt": salt,
 				"sign": string(sign),
