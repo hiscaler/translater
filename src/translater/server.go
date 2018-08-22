@@ -94,6 +94,8 @@ func main() {
 	// 翻译文本
 	// POST /api/translate
 	api.Post("/translate", func(c *routing.Context) error {
+		success := true
+		errorMessage := ""
 		fromLang := c.Query("from", "auto")
 		if len(fromLang) == 0 {
 			fromLang = "auto"
@@ -108,10 +110,19 @@ func main() {
 		fmt.Println(checkLanguages)
 		for _, v := range checkLanguages {
 			if _, exists := cfg.Languages[v]; !exists {
-				fmt.Println("efefe")
-				log.Panic(fmt.Sprintf("Not Support `%v` language.", v))
+				success = false
+				errorMessage = fmt.Sprintf("Not Support `%v` language.", v)
+				//log.Panic(fmt.Sprintf("Not Support `%v` language.", v))
 				break
 			}
+		}
+		if !success {
+			return c.Write(&response.FailResponse{
+				Success: false,
+				Error: response.Error{
+					Message: errorMessage,
+				},
+			})
 		}
 
 		c.Request.ParseForm()
@@ -136,6 +147,7 @@ func main() {
 
 		doc, err := translate.Do()
 		if err == nil {
+			success = true
 			resp := &response.SuccessResponse{
 				Success: true,
 				Data: response.SuccessData{
@@ -143,6 +155,7 @@ func main() {
 					Content:    doc.Render(),
 				},
 			}
+
 			return c.Write(resp)
 		} else {
 			error := &response.Error{
@@ -152,6 +165,7 @@ func main() {
 				Success: false,
 				Error:   *error,
 			}
+
 			return c.Write(resp)
 		}
 	})
