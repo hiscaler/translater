@@ -15,7 +15,11 @@ type FailResponse struct {
 }
 
 type SuccessResponse struct {
-	Success    bool   `json:"success"`
+	Success bool        `json:"success"`
+	Data    SuccessData `json:"data"`
+}
+
+type SuccessData struct {
 	RawContent string `json:"rawContent"`
 	Content    string `json:"content"`
 }

@@ -104,7 +104,7 @@ func main() {
 			PID:       cfg.PID,
 			SecretKey: cfg.SecretKey,
 		}
-		_, err := translate.SetRawContent(text).Parse()
+		translate.SetRawContent(text).Parse()
 
 		if cfg.Debug {
 			log.Println(text)
@@ -113,9 +113,11 @@ func main() {
 		doc, err := translate.Do()
 		if err == nil {
 			resp := &response.SuccessResponse{
-				Success:    false,
-				RawContent: translate.GetRawContent(),
-				Content:    doc.Render(),
+				Success: true,
+				Data: response.SuccessData{
+					RawContent: translate.GetRawContent(),
+					Content:    doc.Render(),
+				},
 			}
 			return c.Write(resp)
 		} else {
