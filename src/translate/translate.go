@@ -3,11 +3,11 @@ package translate
 import (
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"strings"
 	"bytes"
 	"io"
 	"fmt"
 	"log"
+	"strings"
 )
 
 type IT interface {
@@ -107,10 +107,11 @@ func (t *Translate) Anatomy(n *html.Node) string {
 	return t.currentNodeText
 }
 
+// 输出处理后文本
 func (t *Translate) Render() string {
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
-	html.Render(w, t.Doc)
+	html.Render(w, t.Doc.FirstChild.LastChild.FirstChild) // Remove <html><head></head><body></body></html>
 
 	return buf.String()
 }
