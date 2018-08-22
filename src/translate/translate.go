@@ -27,6 +27,7 @@ type Translate struct {
 	ignoreAtoms     []atom.Atom
 	currentNode     *html.Node
 	currentNodeText string
+	Languages       map[string]string // 支持的语种
 }
 
 func NewTranslate(debug bool) *Translate {

@@ -14,6 +14,8 @@ import (
 	"github.com/go-ozzo/ozzo-routing/cors"
 	"github.com/go-ozzo/ozzo-routing"
 	"translate"
+	"errors"
+	"strings"
 )
 
 var (
@@ -25,6 +27,7 @@ type Config struct {
 	ListenPort string
 	PID        string
 	SecretKey  string
+	Languages  map[string]string
 }
 
 type InvalidConfig struct {
@@ -91,24 +94,34 @@ func main() {
 	// 翻译文本
 	// POST /api/translate
 	api.Post("/translate", func(c *routing.Context) error {
-		fromLang := c.Param("from")
-		toLang := c.Param("to")
-		c.Request.ParseForm()
-		text := c.Request.PostFormValue("text")
-		platform := c.Request.PostFormValue("platform")
-		if len(platform) == 0 {
-			platform = "sohu"
+		fromLang := c.Query("from", "auto")
+		if len(fromLang) == 0 {
+			fromLang = "auto"
+		}
+		toLang := c.Query("to", "zh-CHS")
+		checkLanguages := []string{
+			toLang,
+		}
+		if fromLang != "auto" {
+			checkLanguages = append(checkLanguages, fromLang)
+		}
+		fmt.Println(checkLanguages)
+		for _, v := range checkLanguages {
+			if _, exists := cfg.Languages[v]; !exists {
+				fmt.Println("efefe")
+				log.Panic(fmt.Sprintf("Not Support `%v` language.", v))
+				break
+			}
 		}
 
+		c.Request.ParseForm()
+		text := c.Request.PostFormValue("text")
+		if len(strings.TrimSpace(text)) == 0 {
+			errors.New("`text` param is not allow empty.")
+		}
 		t := translate.Translate{
-			From: "zh-CHS",
-			To:   "en",
-		}
-		if len(fromLang) == 0 {
-			t.From = fromLang
-		}
-		if len(toLang) == 0 {
-			t.To = toLang
+			From: fromLang,
+			To:   toLang,
 		}
 		translate := &translate.SohuTranslate{
 			PID:       cfg.PID,
