@@ -28,6 +28,7 @@ type Config struct {
 	PID        string
 	SecretKey  string
 	Languages  map[string]string
+	Accounts   []translate.Account
 }
 
 type InvalidConfig struct {
@@ -107,7 +108,6 @@ func main() {
 		if fromLang != "auto" {
 			checkLanguages = append(checkLanguages, fromLang)
 		}
-		fmt.Println(checkLanguages)
 		for _, v := range checkLanguages {
 			if _, exists := cfg.Languages[v]; !exists {
 				success = false
@@ -131,12 +131,11 @@ func main() {
 			errors.New("`text` param is not allow empty.")
 		}
 		t := translate.Translate{
-			From: fromLang,
-			To:   toLang,
+			From:     fromLang,
+			To:       toLang,
+			Accounts: cfg.Accounts,
 		}
 		translate := &translate.SohuTranslate{
-			PID:       cfg.PID,
-			SecretKey: cfg.SecretKey,
 			Translate: t,
 		}
 		translate.SetRawContent(text).Parse()

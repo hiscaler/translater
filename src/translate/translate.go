@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"math/rand"
 )
 
 type IT interface {
 	Parse() (string, error)
 	Do()
 	SetRawContent(s string)
+	GetAccount()
 }
 
 type Translate struct {
@@ -28,6 +30,7 @@ type Translate struct {
 	currentNode     *html.Node
 	currentNodeText string
 	Languages       map[string]string // 支持的语种
+	Accounts        []Account         // 账号列表
 }
 
 func NewTranslate(debug bool) *Translate {
@@ -127,4 +130,15 @@ func (t *Translate) Do() *Translate {
 	}
 
 	return t
+}
+
+// 获取可使用的账号
+func (t *Translate) GetAccount() Account {
+	accounts := t.Accounts
+	n := len(accounts)
+	if n == 0 {
+		log.Panic("请设置翻译账号列表。")
+	}
+
+	return accounts[rand.Intn(n)]
 }

@@ -10,13 +10,12 @@ import (
 	"io/ioutil"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 )
 
 // 搜狐翻译
 type SohuTranslate struct {
 	Translate
-	PID       string
-	SecretKey string
 }
 
 type SohuResponse struct {
@@ -26,43 +25,56 @@ type SohuResponse struct {
 	ErrorCode   string
 }
 
+var errorCodes = map[string]string{
+	"1001":  "不支持的语言类型",
+	"1002":  "文本过长",
+	"1003":  "无效PID",
+	"1004":  "试用Pid限额已满",
+	"1005":  "Pid请求流量过高",
+	"1006":  "余额不足",
+	"1007":  "随机数不存在",
+	"1008":  "签名不存在",
+	"1009":  "签名不正确",
+	"10010": "文本不存在",
+	"1050":  "内部服务错误",
+}
+
 // 翻译处理
 func (t *SohuTranslate) Do() (*SohuTranslate, error) {
+	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	randSeq := func(n int) string {
+		b := make([]rune, n)
+		for i := range b {
+			b[i] = letters[rand.Intn(len(letters))]
+		}
+		return string(b)
+	}
+	client := &http.Client{}
 	for i, node := range t.Nodes {
-		s := strings.TrimSpace(t.Anatomy(node))
+		t.Anatomy(node)
+		s := strings.Trim(t.currentNodeText, "")
 		if t.Debug {
 			log.Println(fmt.Sprintf("#%v: %#v", i+1, s))
 		}
-
-		s = t.currentNodeText
-		if len(strings.TrimSpace(s)) > 0 {
-			pid := t.PID
-			letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-			randSeq := func(n int) string {
-				b := make([]rune, n)
-				for i := range b {
-					b[i] = letters[rand.Intn(len(letters))]
-				}
-				return string(b)
-			}
+		if len(s) > 0 {
 			salt := randSeq(12)
-			key := t.SecretKey
+			account := t.GetAccount()
 			mdx := md5.New()
-			mdx.Write([]byte(pid + s + salt + key))
+			mdx.Write([]byte(account.PID + s + salt + account.SecretKey))
 			sign := hex.EncodeToString(mdx.Sum(nil))
 			fields := map[string]string{
 				"q":    s,
 				"from": t.From,
 				"to":   t.To,
-				"pid":  pid,
+				"pid":  account.PID,
 				"salt": salt,
-				"sign": string(sign),
+				"sign": sign,
 			}
 			payload := make([]string, len(fields))
 			for k, v := range fields {
 				payload = append(payload, fmt.Sprintf("%s=%s", k, v))
 			}
-			client := &http.Client{}
+
 			req, err := http.NewRequest("POST", "http://fanyi.sogou.com/reventondc/api/sogouTranslate", strings.NewReader(strings.Join(payload, "&")))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.Header.Set("Accept", "application/json")
@@ -73,8 +85,16 @@ func (t *SohuTranslate) Do() (*SohuTranslate, error) {
 					if err == nil {
 						sohuResponse := &SohuResponse{}
 						err = json.Unmarshal([]byte(body), &sohuResponse)
-						if err == nil && sohuResponse.ErrorCode == "0" {
-							s = sohuResponse.Translation
+						if err == nil {
+							if sohuResponse.ErrorCode == "0" {
+								s = sohuResponse.Translation
+							} else {
+								msg, exists := errorCodes[sohuResponse.ErrorCode]
+								if !exists {
+									msg = sohuResponse.ErrorCode
+								}
+								return t, errors.New(msg)
+							}
 						}
 					}
 					resp.Body.Close()
