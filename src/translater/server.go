@@ -131,6 +131,7 @@ func main() {
 			errors.New("`text` param is not allow empty.")
 		}
 		t := translate.Translate{
+			Debug:    cfg.Debug,
 			From:     fromLang,
 			To:       toLang,
 			Accounts: cfg.Accounts,

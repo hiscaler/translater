@@ -114,9 +114,11 @@ func (t *Translate) Anatomy(n *html.Node) string {
 func (t *Translate) Render() string {
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
-	html.Render(w, t.Doc.FirstChild.LastChild.FirstChild) // Remove <html><head></head><body></body></html>
+	html.Render(w, t.Doc)
+	s := buf.String()
+	replacer := strings.NewReplacer("<html><head></head><body>", "", "</body></html>", "") // Remove <html><head></head><body></body></html>
 
-	return buf.String()
+	return replacer.Replace(s)
 }
 
 // 翻译处理

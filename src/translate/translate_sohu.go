@@ -8,9 +8,10 @@ import (
 	"math/rand"
 	"crypto/md5"
 	"io/ioutil"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"html"
+	"encoding/hex"
 )
 
 // 搜狐翻译
@@ -52,7 +53,7 @@ func (t *SohuTranslate) Do() (*SohuTranslate, error) {
 	client := &http.Client{}
 	for i, node := range t.Nodes {
 		t.Anatomy(node)
-		s := strings.Trim(t.currentNodeText, "")
+		s := html.UnescapeString(strings.Trim(t.currentNodeText, " \r\n\t"))
 		if t.Debug {
 			log.Println(fmt.Sprintf("#%v: %#v", i+1, s))
 		}
@@ -87,19 +88,25 @@ func (t *SohuTranslate) Do() (*SohuTranslate, error) {
 						err = json.Unmarshal([]byte(body), &sohuResponse)
 						if err == nil {
 							if sohuResponse.ErrorCode == "0" {
-								s = sohuResponse.Translation
+								t.currentNode.Data = sohuResponse.Translation
 							} else {
 								msg, exists := errorCodes[sohuResponse.ErrorCode]
 								if !exists {
 									msg = sohuResponse.ErrorCode
 								}
+
+								if t.Debug {
+									msg = fmt.Sprintf("%v (%v)", msg, s)
+								} else {
+									fmt.Println("not debug")
+								}
+
 								return t, errors.New(msg)
 							}
 						}
 					}
 					resp.Body.Close()
 				}
-				t.currentNode.Data = s
 			} else {
 				return t, err
 			}
