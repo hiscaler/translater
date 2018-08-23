@@ -94,11 +94,8 @@ func (t *SohuTranslate) Do() (*SohuTranslate, error) {
 								if !exists {
 									msg = sohuResponse.ErrorCode
 								}
-
 								if t.Debug {
 									msg = fmt.Sprintf("%v (%v)", msg, s)
-								} else {
-									fmt.Println("not debug")
 								}
 
 								return t, errors.New(msg)
