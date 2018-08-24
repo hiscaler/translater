@@ -11,11 +11,11 @@ GET /api/ping
 POST /api/translate?from=en&to=zh-CHS
 
 #### 参数说明
-参数 | 说明
----- | ---
-from | 源语言[语种简码](http://deepi.sogou.com/docs/fanyiDoc#lan)
-to |  	目标语言[语种简码](http://deepi.sogou.com/docs/fanyiDoc#lan)
-q |  需要翻译的文本（utf8编码待翻译文本）
+参数 | 说明 | 默认值
+---- | --- | ----
+from | 源语言[语种简码](http://deepi.sogou.com/docs/fanyiDoc#lan) | auto
+to |  	目标语言[语种简码](http://deepi.sogou.com/docs/fanyiDoc#lan) | 无
+q |  需要翻译的文本（utf8编码待翻译文本）| 无
 
 ## 搜狗开发文档
 http://deepi.sogou.com/docs/fanyiDoc
