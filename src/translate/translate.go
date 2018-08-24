@@ -42,7 +42,7 @@ func NewTranslate(debug bool) *Translate {
 // 设置要翻译的文本内容
 func (t *Translate) SetRawContent(s string) *Translate {
 	t.rawContent = s
-	t.ignoreAtoms = []atom.Atom{atom.Ping}
+	t.ignoreAtoms = []atom.Atom{atom.Ping, atom.Script, atom.Noscript, atom.Style}
 
 	return t
 }

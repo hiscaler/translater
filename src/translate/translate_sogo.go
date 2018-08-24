@@ -10,8 +10,8 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"errors"
-	"html"
 	"encoding/hex"
+	"net/url"
 )
 
 // 搜狗翻译
@@ -53,7 +53,7 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 	client := &http.Client{}
 	for i, node := range t.Nodes {
 		t.Anatomy(node)
-		s := html.UnescapeString(strings.Trim(t.currentNodeText, " \r\n\t"))
+		s := strings.Trim(t.currentNodeText, " \r\n\t")
 		if t.Debug {
 			log.Println(fmt.Sprintf("#%v: %#v", i+1, s))
 		}
@@ -71,12 +71,11 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 				"salt": salt,
 				"sign": sign,
 			}
-			payload := make([]string, len(fields))
+			body := url.Values{}
 			for k, v := range fields {
-				payload = append(payload, fmt.Sprintf("%s=%s", k, v))
+				body.Set(k, v)
 			}
-
-			req, err := http.NewRequest("POST", "http://fanyi.sogou.com/reventondc/api/sogouTranslate", strings.NewReader(strings.Join(payload, "&")))
+			req, err := http.NewRequest("POST", "http://fanyi.sogou.com/reventondc/api/sogouTranslate", strings.NewReader(body.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.Header.Set("Accept", "application/json")
 			if err == nil {
