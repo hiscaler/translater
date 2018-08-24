@@ -6,6 +6,8 @@
 ### 测试接口状态
 GET /api/ping
 
+正常状态下会返回 "OK" 字样
+
 ### 访问接口
 #### 地址
 POST /api/translate?from=en&to=zh-CHS
