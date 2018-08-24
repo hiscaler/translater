@@ -80,7 +80,7 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 			req.Header.Set("Accept", "application/json")
 			if err == nil {
 				resp, err := client.Do(req)
-				if err == nil {
+				if err == nil && resp.StatusCode == 200 {
 					body, err := ioutil.ReadAll(resp.Body)
 					if err == nil {
 						sogoResponse := &SogoResponse{}
