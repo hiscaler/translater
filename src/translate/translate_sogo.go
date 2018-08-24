@@ -14,12 +14,12 @@ import (
 	"encoding/hex"
 )
 
-// 搜狐翻译
-type SohuTranslate struct {
+// 搜狗翻译
+type SogoTranslate struct {
 	Translate
 }
 
-type SohuResponse struct {
+type SogoResponse struct {
 	Zly         string
 	Query       string
 	Translation string
@@ -41,7 +41,7 @@ var errorCodes = map[string]string{
 }
 
 // 翻译处理
-func (t *SohuTranslate) Do() (*SohuTranslate, error) {
+func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	randSeq := func(n int) string {
 		b := make([]rune, n)
@@ -84,15 +84,15 @@ func (t *SohuTranslate) Do() (*SohuTranslate, error) {
 				if err == nil {
 					body, err := ioutil.ReadAll(resp.Body)
 					if err == nil {
-						sohuResponse := &SohuResponse{}
-						err = json.Unmarshal([]byte(body), &sohuResponse)
+						sogoResponse := &SogoResponse{}
+						err = json.Unmarshal([]byte(body), &sogoResponse)
 						if err == nil {
-							if sohuResponse.ErrorCode == "0" {
-								t.currentNode.Data = sohuResponse.Translation
+							if sogoResponse.ErrorCode == "0" {
+								t.currentNode.Data = sogoResponse.Translation
 							} else {
-								msg, exists := errorCodes[sohuResponse.ErrorCode]
+								msg, exists := errorCodes[sogoResponse.ErrorCode]
 								if !exists {
-									msg = sohuResponse.ErrorCode
+									msg = sogoResponse.ErrorCode
 								}
 								if t.Debug {
 									msg = fmt.Sprintf("%v (%v)", msg, s)

@@ -136,7 +136,7 @@ func main() {
 			To:       toLang,
 			Accounts: cfg.Accounts,
 		}
-		translate := &translate.SohuTranslate{
+		translate := &translate.SogoTranslate{
 			Translate: t,
 		}
 		translate.SetRawContent(text).Parse()
