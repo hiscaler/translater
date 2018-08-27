@@ -54,12 +54,12 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 	for i, node := range t.Nodes {
 		t.Anatomy(node)
 		s := strings.Trim(t.currentNodeText, " \r\n\t")
-		if t.Debug {
+		if t.Config.Debug {
 			log.Println(fmt.Sprintf("#%v: %#v", i+1, s))
 		}
 		if len(s) > 0 {
 			salt := randSeq(12)
-			account := t.GetAccount()
+			account := t.GetRandomAccount()
 			mdx := md5.New()
 			mdx.Write([]byte(account.PID + s + salt + account.SecretKey))
 			sign := hex.EncodeToString(mdx.Sum(nil))
@@ -89,11 +89,14 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 							if sogoResponse.ErrorCode == "0" {
 								t.currentNode.Data = sogoResponse.Translation
 							} else {
+								if sogoResponse.ErrorCode == "1003" || sogoResponse.ErrorCode=="1004" || sogoResponse.ErrorCode == "1005" {
+									t.updateAccount(account.PID, false)
+								}
 								msg, exists := errorCodes[sogoResponse.ErrorCode]
 								if !exists {
 									msg = sogoResponse.ErrorCode
 								}
-								if t.Debug {
+								if t.Config.Debug {
 									msg = fmt.Sprintf("%v (%v)", msg, s)
 								}
 

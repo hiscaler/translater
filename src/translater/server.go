@@ -7,8 +7,6 @@ import (
 	"github.com/go-ozzo/ozzo-routing/slash"
 	"github.com/go-ozzo/ozzo-routing/content"
 	"github.com/go-ozzo/ozzo-routing/fault"
-	"io/ioutil"
-	"encoding/json"
 	"fmt"
 	"response"
 	"github.com/go-ozzo/ozzo-routing/cors"
@@ -16,18 +14,13 @@ import (
 	"translate"
 	"errors"
 	"strings"
+	"github.com/spf13/viper"
 )
 
 var (
-	cfg *Config
+	config *translate.Config
+	v      *viper.Viper
 )
-
-type Config struct {
-	Debug      bool
-	ListenPort string
-	Languages  map[string]string
-	Accounts   []translate.Account
-}
 
 type InvalidConfig struct {
 	file   string
@@ -38,32 +31,19 @@ func (e *InvalidConfig) Error() string {
 	return fmt.Sprintf("%v", e.file)
 }
 
-// 载入配置文件
-func loadConfig() (*Config, error) {
-	cfg := &Config{
-		Debug:      true,
-		ListenPort: "80",
-	}
-	filePath := "src/config/conf.json"
-	jsonFile, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return nil, &InvalidConfig{file: filePath}
-	}
-
-	err = json.Unmarshal(jsonFile, &cfg)
-	if err != nil {
-		return nil, &InvalidConfig{file: filePath, config: string(jsonFile)}
-	}
-
-	return cfg, nil
-}
-
 func init() {
-	if c, err := loadConfig(); err != nil {
-		ae := err.(*InvalidConfig)
-		panic("Config file read error:\nfile = " + ae.file + "\nconfig = " + ae.config)
-	} else {
-		cfg = c
+	v = viper.New()
+	v.AddConfigPath("./src/config/")
+	v.SetConfigName("conf")
+	v.SetConfigType("json")
+	err := v.ReadInConfig()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	err = v.Unmarshal(&config)
+	if err != nil {
+		log.Panic(err)
 	}
 }
 
@@ -98,16 +78,19 @@ func main() {
 		fromLang := c.Query("from", "auto")
 		if len(fromLang) == 0 {
 			fromLang = "auto"
+		} else {
+			fromLang = strings.ToLower(fromLang)
 		}
 		toLang := c.Query("to", "zh-CHS")
+		//toLang = strings.ToLower(toLang)
 		checkLanguages := []string{
-			toLang,
+			strings.ToLower(toLang),
 		}
 		if fromLang != "auto" {
-			checkLanguages = append(checkLanguages, fromLang)
+			checkLanguages = append(checkLanguages, strings.ToLower(fromLang))
 		}
 		for _, v := range checkLanguages {
-			if _, exists := cfg.Languages[v]; !exists {
+			if _, exists := config.Languages[v]; !exists {
 				success = false
 				errorMessage = fmt.Sprintf("Not Support `%v` language.", v)
 				//log.Panic(fmt.Sprintf("Not Support `%v` language.", v))
@@ -129,17 +112,18 @@ func main() {
 			errors.New("`text` param is not allow empty.")
 		}
 		t := translate.Translate{
-			Debug:    cfg.Debug,
+			Viper:    v,
+			Config:   config,
 			From:     fromLang,
 			To:       toLang,
-			Accounts: cfg.Accounts,
+			Accounts: config.Accounts,
 		}
 		translate := &translate.SogoTranslate{
 			Translate: t,
 		}
 		translate.SetRawContent(text).Parse()
 
-		if cfg.Debug {
+		if config.Debug {
 			log.Println(text)
 		}
 
@@ -169,7 +153,7 @@ func main() {
 	})
 
 	http.Handle("/", router)
-	addr := cfg.ListenPort
+	addr := config.ListenPort
 	if len(addr) == 0 {
 		addr = "8080"
 	}

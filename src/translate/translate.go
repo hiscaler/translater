@@ -9,6 +9,9 @@ import (
 	"log"
 	"strings"
 	"math/rand"
+	"time"
+	"github.com/spf13/viper"
+	"strconv"
 )
 
 type IT interface {
@@ -20,9 +23,10 @@ type IT interface {
 
 type Translate struct {
 	IT
-	Debug           bool
-	From            string // 来源语言
-	To              string // 目标语言
+	Config          *Config
+	Viper           *viper.Viper // Config
+	From            string       // 来源语言
+	To              string       // 目标语言
 	Doc             *html.Node
 	Nodes           []*html.Node
 	rawContent      string
@@ -31,12 +35,6 @@ type Translate struct {
 	currentNodeText string
 	Languages       map[string]string // 支持的语种
 	Accounts        []Account         // 账号列表
-}
-
-func NewTranslate(debug bool) *Translate {
-	return &Translate{
-		Debug: debug,
-	}
 }
 
 // 设置要翻译的文本内容
@@ -125,7 +123,7 @@ func (t *Translate) Render() string {
 func (t *Translate) Do() *Translate {
 	for i, node := range t.Nodes {
 		s := t.Anatomy(node)
-		if t.Debug {
+		if t.Config.Debug {
 			log.Println(fmt.Sprintf("#%v: %#v", i+1, s))
 		}
 		t.currentNode.Data = t.currentNodeText
@@ -134,12 +132,63 @@ func (t *Translate) Do() *Translate {
 	return t
 }
 
-// 获取可使用的账号
-func (t *Translate) GetAccount() Account {
-	accounts := t.Accounts
-	n := len(accounts)
+// 更新账号状态
+func (t *Translate) updateAccount(pid string, enable bool) (bool, error) {
+	err := t.Viper.ReadInConfig()
+	if err != nil {
+		log.Panic("Config file not found(%v)", err)
+		return false, err
+	}
+
+	key := "accounts"
+	t.Viper.Get(key)
+	d := time.Now()
+	ym, _ := strconv.Atoi(fmt.Sprintf("%d%02d", d.Year(), int(d.Month())))
+	for k, v := range t.Config.Accounts {
+		if v.PID == pid {
+			fmt.Println("Update " + pid)
+			v.Enabled = enable
+			v.YearMonth = ym
+			t.Config.Accounts[k] = v
+			continue
+		}
+		// 刷新其他账号
+		if v.Enabled == false && v.YearMonth != ym {
+			v.Enabled = true
+			v.YearMonth = ym
+			t.Config.Accounts[k] = v
+		}
+	}
+	t.Viper.Set(key, t.Config.Accounts)
+	err = t.Viper.WriteConfig()
+	//err = t.Viper.WriteConfigAs("./src/config/config.bak.json")
+	if err == nil {
+		return true, nil
+	} else {
+		fmt.Println(err)
+		return false, err
+	}
+
+}
+
+// 获取一个随机有效账号
+func (t *Translate) GetRandomAccount() Account {
+	rawAccounts := t.Config.Accounts
+	n := len(rawAccounts)
 	if n == 0 {
 		log.Panic("请设置翻译账号列表。")
+	}
+
+	accounts := make([]Account, 0)
+	for _, v := range rawAccounts {
+		if v.Enabled {
+			accounts = append(accounts, v)
+		}
+	}
+
+	n = len(accounts)
+	if n == 0 {
+		log.Panic("暂无有效的翻译账号。")
 	}
 
 	return accounts[rand.Intn(n)]
