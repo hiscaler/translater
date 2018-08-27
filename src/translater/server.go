@@ -25,8 +25,6 @@ var (
 type Config struct {
 	Debug      bool
 	ListenPort string
-	PID        string
-	SecretKey  string
 	Languages  map[string]string
 	Accounts   []translate.Account
 }
