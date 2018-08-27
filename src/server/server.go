@@ -33,7 +33,9 @@ func (e *InvalidConfig) Error() string {
 
 func init() {
 	v = viper.New()
-	v.AddConfigPath("./src/config/")
+	v.AddConfigPath("src/config/")
+	v.AddConfigPath("../src/config/")
+	v.AddConfigPath("../../src/config/")
 	v.SetConfigName("conf")
 	v.SetConfigType("json")
 	err := v.ReadInConfig()
