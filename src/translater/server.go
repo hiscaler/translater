@@ -78,11 +78,8 @@ func main() {
 		fromLang := c.Query("from", "auto")
 		if len(fromLang) == 0 {
 			fromLang = "auto"
-		} else {
-			fromLang = strings.ToLower(fromLang)
 		}
 		toLang := c.Query("to", "zh-CHS")
-		//toLang = strings.ToLower(toLang)
 		checkLanguages := []string{
 			strings.ToLower(toLang),
 		}
@@ -93,7 +90,6 @@ func main() {
 			if _, exists := config.Languages[v]; !exists {
 				success = false
 				errorMessage = fmt.Sprintf("Not Support `%v` language.", v)
-				//log.Panic(fmt.Sprintf("Not Support `%v` language.", v))
 				break
 			}
 		}
