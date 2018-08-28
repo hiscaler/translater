@@ -18,7 +18,7 @@ type IT interface {
 	Parse() (string, error)
 	Do()
 	SetRawContent(s string)
-	GetAccount()
+	GetRandomAccount()
 }
 
 type Translate struct {
