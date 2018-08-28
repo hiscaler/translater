@@ -173,20 +173,14 @@ func (t *Translate) updateAccount(pid string, enable bool) (bool, error) {
 
 // 获取一个随机有效账号
 func (t *Translate) GetRandomAccount() Account {
-	rawAccounts := t.Config.Accounts
-	n := len(rawAccounts)
-	if n == 0 {
-		log.Panic("请设置翻译账号列表。")
-	}
-
 	accounts := make([]Account, 0)
-	for _, v := range rawAccounts {
+	for _, v := range t.Config.Accounts {
 		if v.Enabled {
 			accounts = append(accounts, v)
 		}
 	}
 
-	n = len(accounts)
+	n := len(accounts)
 	if n == 0 {
 		log.Panic("暂无有效的翻译账号。")
 	}
