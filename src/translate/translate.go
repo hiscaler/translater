@@ -146,7 +146,6 @@ func (t *Translate) updateAccount(pid string, enable bool) (bool, error) {
 	ym, _ := strconv.Atoi(fmt.Sprintf("%d%02d", d.Year(), int(d.Month())))
 	for k, v := range t.Config.Accounts {
 		if v.PID == pid {
-			fmt.Println("Update " + pid)
 			v.Enabled = enable
 			v.YearMonth = ym
 			t.Config.Accounts[k] = v
@@ -161,14 +160,11 @@ func (t *Translate) updateAccount(pid string, enable bool) (bool, error) {
 	}
 	t.Viper.Set(key, t.Config.Accounts)
 	err = t.Viper.WriteConfig()
-	//err = t.Viper.WriteConfigAs("./src/config/config.bak.json")
 	if err == nil {
 		return true, nil
 	} else {
-		fmt.Println(err)
 		return false, err
 	}
-
 }
 
 // 获取一个随机有效账号

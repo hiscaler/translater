@@ -89,8 +89,11 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 							if sogoResponse.ErrorCode == "0" {
 								t.currentNode.Data = sogoResponse.Translation
 							} else {
-								if sogoResponse.ErrorCode == "1003" || sogoResponse.ErrorCode=="1004" || sogoResponse.ErrorCode == "1005" {
-									t.updateAccount(account.PID, false)
+								if sogoResponse.ErrorCode == "1003" || sogoResponse.ErrorCode == "1004" || sogoResponse.ErrorCode == "1005" {
+									_, err = t.updateAccount(account.PID, false)
+									if err != nil {
+										log.Println(err)
+									}
 								}
 								msg, exists := errorCodes[sogoResponse.ErrorCode]
 								if !exists {
