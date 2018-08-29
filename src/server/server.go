@@ -75,6 +75,7 @@ func main() {
 			log.Fatalln(filename + " create failed.")
 		}
 	}
+	defer logFile.Close()
 
 	logger = log.New(logFile, "", log.LstdFlags|log.Lshortfile)
 	logger.Println("Start server ...")
@@ -188,5 +189,4 @@ func main() {
 	if err != nil {
 		logger.Panic(err)
 	}
-	defer logFile.Close()
 }
