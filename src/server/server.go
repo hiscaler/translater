@@ -15,9 +15,11 @@ import (
 	"errors"
 	"strings"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var (
+	logger *log.Logger
 	config *translate.Config
 	v      *viper.Viper
 )
@@ -32,6 +34,7 @@ func (e *InvalidConfig) Error() string {
 }
 
 func init() {
+
 	v = viper.New()
 	v.AddConfigPath("src/config/")
 	v.AddConfigPath("../src/config/")
@@ -50,11 +53,36 @@ func init() {
 }
 
 func main() {
+	filename := "./src/runtime/logs/log.log"
+	logFile := &os.File{}
+	exists := false
+	_, err := os.Stat(filename)
+	if err != nil {
+		if os.IsExist(err) {
+			exists = true
+		}
+	} else {
+		exists = true
+	}
+	if exists {
+		logFile, err = os.OpenFile(filename, os.O_APPEND, os.ModePerm)
+		if err != nil {
+			log.Fatalln(filename + " open failed.")
+		}
+	} else {
+		logFile, err = os.Create(filename)
+		if err != nil {
+			log.Fatalln(filename + " create failed.")
+		}
+	}
+
+	logger = log.New(logFile, "", log.LstdFlags|log.Lshortfile)
+	logger.Println("Start server ...")
 	router := routing.New()
 	router.Use(
-		access.Logger(log.Printf),
+		access.Logger(logger.Printf),
 		slash.Remover(http.StatusMovedPermanently),
-		fault.Recovery(log.Printf),
+		fault.Recovery(logger.Printf),
 	)
 
 	api := router.Group("/api")
@@ -110,6 +138,7 @@ func main() {
 			errors.New("`text` param is not allow empty.")
 		}
 		t := translate.Translate{
+			Logger:   logger,
 			Viper:    v,
 			Config:   config,
 			From:     fromLang,
@@ -122,7 +151,7 @@ func main() {
 		translate.SetRawContent(text).Parse()
 
 		if config.Debug {
-			log.Println(text)
+			t.Logger.Println(text)
 		}
 
 		doc, err := translate.Do()
@@ -155,8 +184,9 @@ func main() {
 	if len(addr) == 0 {
 		addr = "8080"
 	}
-	err := http.ListenAndServe(":"+addr, nil)
+	err = http.ListenAndServe(":"+addr, nil)
 	if err != nil {
-		log.Panic(err)
+		logger.Panic(err)
 	}
+	defer logFile.Close()
 }

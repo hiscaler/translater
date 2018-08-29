@@ -2,7 +2,6 @@ package translate
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"net/http"
 	"math/rand"
@@ -55,7 +54,7 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 		t.Anatomy(node)
 		s := strings.Trim(t.currentNodeText, " \r\n\t")
 		if t.Config.Debug {
-			log.Println(fmt.Sprintf("#%v: %#v", i+1, s))
+			t.Logger.Println(fmt.Sprintf("#%v: %#v", i+1, s))
 		}
 		if len(s) > 0 {
 			salt := randSeq(12)
@@ -92,7 +91,7 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 								if sogoResponse.ErrorCode == "1003" || sogoResponse.ErrorCode == "1004" || sogoResponse.ErrorCode == "1005" {
 									_, err = t.updateAccount(account.PID, false)
 									if err != nil {
-										log.Println(err)
+										t.Logger.Println(err)
 									}
 								}
 								msg, exists := errorCodes[sogoResponse.ErrorCode]
