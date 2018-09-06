@@ -134,8 +134,8 @@ func main() {
 		}
 
 		c.Request.ParseForm()
-		text := c.Request.PostFormValue("text")
-		if len(strings.TrimSpace(text)) == 0 {
+		text := strings.TrimSpace(c.Request.PostFormValue("text"))
+		if len(text) == 0 {
 			errors.New("`text` param is not allow empty.")
 		}
 		t := translate.Translate{
