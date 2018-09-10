@@ -114,7 +114,7 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 							}
 						} else {
 							if t.Config.Debug {
-								t.Logger.Println(fmt.Sprintf("#%v After: %#v", i+1, err.Error()))
+								t.Logger.Println(fmt.Sprintf("#%v After: %#v", i+1, string(body)))
 							}
 						}
 					}
