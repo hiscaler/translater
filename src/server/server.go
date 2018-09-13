@@ -81,10 +81,11 @@ func main() {
 	}
 	defer logFile.Close()
 
+	flag := log.LstdFlags | log.Lshortfile
 	logger = slog.Logger{
-		InfoLogger:    log.New(logFile, "[INFO] ", log.LstdFlags|log.Lshortfile),
-		WarningLogger: log.New(logFile, "[WARNING] ", log.LstdFlags|log.Lshortfile),
-		ErrorLogger:   log.New(logFile, "[ERROR] ", log.LstdFlags|log.Lshortfile),
+		InfoLogger:    log.New(logFile, "[INFO] ", flag),
+		WarningLogger: log.New(logFile, "[WARNING] ", flag),
+		ErrorLogger:   log.New(logFile, "[ERROR] ", flag),
 	}
 	logger.InfoLogger.Println("Start server ...")
 	router := routing.New()
