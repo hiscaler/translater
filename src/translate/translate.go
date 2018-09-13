@@ -6,12 +6,12 @@ import (
 	"bytes"
 	"io"
 	"fmt"
-	"log"
 	"strings"
 	"math/rand"
 	"time"
 	"github.com/spf13/viper"
 	"strconv"
+	"slog"
 )
 
 type IT interface {
@@ -23,7 +23,7 @@ type IT interface {
 
 type Translate struct {
 	IT
-	Logger          *log.Logger
+	Logger          slog.Logger
 	Config          *Config
 	Viper           *viper.Viper // Config
 	From            string       // 来源语言
@@ -125,7 +125,7 @@ func (t *Translate) Do() *Translate {
 	for i, node := range t.Nodes {
 		s := t.Anatomy(node)
 		if t.Config.Debug {
-			t.Logger.Println(fmt.Sprintf("#%v: %#v", i+1, s))
+			t.Logger.InfoLogger.Println(fmt.Sprintf("#%v: %#v", i+1, s))
 		}
 		t.currentNode.Data = t.currentNodeText
 	}
@@ -137,7 +137,7 @@ func (t *Translate) Do() *Translate {
 func (t *Translate) updateAccount(pid string, enable bool) (bool, error) {
 	err := t.Viper.ReadInConfig()
 	if err != nil {
-		t.Logger.Panic("Config file not found(%v)", err)
+		t.Logger.ErrorLogger.Panic("Config file not found(%v)", err)
 		return false, err
 	}
 
@@ -179,7 +179,7 @@ func (t *Translate) GetRandomAccount() Account {
 
 	n := len(accounts)
 	if n == 0 {
-		t.Logger.Panic("暂无有效的翻译账号。")
+		t.Logger.ErrorLogger.Panic("暂无有效的翻译账号。")
 	}
 
 	return accounts[rand.Intn(n)]

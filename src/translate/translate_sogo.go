@@ -54,7 +54,7 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 		t.Anatomy(node)
 		s := strings.Trim(t.currentNodeText, " \r\n\t")
 		if t.Config.Debug {
-			t.Logger.Println(fmt.Sprintf("#%v Before: %#v", i+1, s))
+			t.Logger.InfoLogger.Println(fmt.Sprintf("#%v Before: %#v", i+1, s))
 		}
 		if len(s) > 0 {
 			salt := randSeq(12)
@@ -88,13 +88,13 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 							if sogoResponse.ErrorCode == "0" {
 								t.currentNode.Data = sogoResponse.Translation
 								if t.Config.Debug {
-									t.Logger.Println(fmt.Sprintf("#%v After: %#v", i+1, sogoResponse.Translation))
+									t.Logger.InfoLogger.Println(fmt.Sprintf("#%v After: %#v", i+1, sogoResponse.Translation))
 								}
 							} else {
 								if sogoResponse.ErrorCode == "1003" || sogoResponse.ErrorCode == "1004" || sogoResponse.ErrorCode == "1005" {
 									_, err = t.updateAccount(account.PID, false)
 									if err != nil {
-										t.Logger.Println(err)
+										t.Logger.ErrorLogger.Println(err)
 									}
 								}
 								msg, exists := errorCodes[sogoResponse.ErrorCode]
@@ -107,14 +107,14 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 
 								err = errors.New(msg)
 								if t.Config.Debug {
-									t.Logger.Println(fmt.Sprintf("#%v After: %#v", i+1, err.Error()))
+									t.Logger.ErrorLogger.Println(fmt.Sprintf("#%v After: %#v", i+1, err.Error()))
 								}
 
 								return t, err
 							}
 						} else {
 							if t.Config.Debug {
-								t.Logger.Println(fmt.Sprintf("#%v After: %#v", i+1, string(body)))
+								t.Logger.ErrorLogger.Println(fmt.Sprintf("#%v After: %#v", i+1, string(body)))
 							}
 						}
 					}

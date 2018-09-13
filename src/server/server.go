@@ -16,12 +16,16 @@ import (
 	"strings"
 	"github.com/spf13/viper"
 	"os"
+	"slog"
 )
 
 var (
-	logger *log.Logger
-	config *translate.Config
-	v      *viper.Viper
+	logger        slog.Logger
+	InfoLogger    *log.Logger
+	WarningLogger *log.Logger
+	ErrorLogger   *log.Logger
+	config        *translate.Config
+	v             *viper.Viper
 )
 
 type InvalidConfig struct {
@@ -77,13 +81,17 @@ func main() {
 	}
 	defer logFile.Close()
 
-	logger = log.New(logFile, "", log.LstdFlags|log.Lshortfile)
-	logger.Println("Start server ...")
+	logger = slog.Logger{
+		InfoLogger:    log.New(logFile, "[INFO] ", log.LstdFlags|log.Lshortfile),
+		WarningLogger: log.New(logFile, "[WARNING] ", log.LstdFlags|log.Lshortfile),
+		ErrorLogger:   log.New(logFile, "[ERROR] ", log.LstdFlags|log.Lshortfile),
+	}
+	logger.InfoLogger.Println("Start server ...")
 	router := routing.New()
 	router.Use(
-		access.Logger(logger.Printf),
+		access.Logger(logger.InfoLogger.Printf),
 		slash.Remover(http.StatusMovedPermanently),
-		fault.Recovery(logger.Printf),
+		fault.Recovery(logger.InfoLogger.Printf),
 	)
 
 	api := router.Group("/api")
@@ -152,7 +160,7 @@ func main() {
 		translate.SetRawContent(text).Parse()
 
 		if config.Debug {
-			t.Logger.Println(text)
+			t.Logger.InfoLogger.Println(text)
 		}
 
 		doc, err := translate.Do()
@@ -187,6 +195,6 @@ func main() {
 	}
 	err = http.ListenAndServe(":"+addr, nil)
 	if err != nil {
-		logger.Panic(err)
+		logger.ErrorLogger.Panic(err)
 	}
 }
