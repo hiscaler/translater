@@ -122,6 +122,7 @@ func (t *SogoTranslate) Req(i int, s string, in chan<- string) (string, error) {
 
 }
 
+// 翻译处理
 func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	out := make(chan string, len(t.Nodes))
@@ -141,6 +142,7 @@ func (t *SogoTranslate) Do() (*SogoTranslate, error) {
 }
 
 // 翻译处理
+// Deprecated: 弃用，改为使用 goroutine 方式
 func (t *SogoTranslate) _Do() (*SogoTranslate, error) {
 	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	randSeq := func(n int) string {
