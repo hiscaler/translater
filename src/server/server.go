@@ -17,6 +17,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"slog"
+	"path/filepath"
 )
 
 var (
@@ -57,10 +58,16 @@ func init() {
 }
 
 func main() {
-	filename := "./src/runtime/logs/log.log"
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// Set `go build` output directory is `project/bin`
+	filename := filepath.Join(strings.Replace(dir, "\\", "/", -1), "../src/runtime/logs/log.log")
+	fmt.Println(filename)
 	logFile := &os.File{}
 	exists := false
-	_, err := os.Stat(filename)
+	_, err = os.Stat(filename)
 	if err != nil {
 		if os.IsExist(err) {
 			exists = true
