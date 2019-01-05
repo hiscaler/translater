@@ -17,7 +17,6 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"slog"
-	"path/filepath"
 )
 
 var (
@@ -39,11 +38,8 @@ func (e *InvalidConfig) Error() string {
 }
 
 func init() {
-
 	v = viper.New()
-	v.AddConfigPath("src/config/")
-	v.AddConfigPath("../src/config/")
-	v.AddConfigPath("../../src/config/")
+	v.AddConfigPath("./config/")
 	v.SetConfigName("conf")
 	v.SetConfigType("json")
 	err := v.ReadInConfig()
@@ -58,20 +54,16 @@ func init() {
 }
 
 func main() {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	// Set `go build` output directory is `project/bin`
-	filename := filepath.Join(strings.Replace(dir, "\\", "/", -1), "../src/runtime/logs/log.log")
-	fmt.Println(filename)
+	filename := "./runtime/logs/log.log"
 	logFile := &os.File{}
+	defer logFile.Close()
 	exists := false
-	_, err = os.Stat(filename)
+	_, err := os.Stat(filename)
 	if err != nil {
 		if os.IsExist(err) {
 			exists = true
 		}
+		fmt.Println(err)
 	} else {
 		exists = true
 	}
@@ -86,7 +78,6 @@ func main() {
 			log.Fatalln(filename + " create failed.")
 		}
 	}
-	defer logFile.Close()
 
 	flag := log.LstdFlags | log.Lshortfile
 	logger = slog.Logger{
@@ -201,6 +192,7 @@ func main() {
 	if len(addr) == 0 {
 		addr = "8080"
 	}
+	log.Println("Begin start serve.")
 	err = http.ListenAndServe(":"+addr, nil)
 	if err != nil {
 		logger.ErrorLogger.Panic(err)
