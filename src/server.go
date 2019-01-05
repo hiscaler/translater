@@ -63,7 +63,6 @@ func main() {
 		if os.IsExist(err) {
 			exists = true
 		}
-		fmt.Println(err)
 	} else {
 		exists = true
 	}
