@@ -8,7 +8,6 @@ import (
 	"errors"
 	"net/url"
 	"runtime"
-	"log"
 )
 
 // 谷歌翻译
@@ -35,11 +34,11 @@ func (t *GoogleTranslate) Req(i int, s string, in chan<- string) (string, error)
 				in <- translateAfterText
 				return translateAfterText, nil
 			} else {
-				log.Println(err)
+				t.Logger.ErrorLogger.Println(err)
 			}
 			resp.Body.Close()
 		} else {
-			log.Println(err)
+			t.Logger.ErrorLogger.Println(err)
 		}
 		in <- s
 		return s, err
