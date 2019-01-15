@@ -110,35 +110,8 @@ func main() {
 	// 翻译文本
 	// POST /api/translate
 	api.Post("/translate", func(c *routing.Context) error {
-		success := true
-		errorMessage := ""
-		fromLang := c.Query("from", "auto")
-		if len(fromLang) == 0 {
-			fromLang = "auto"
-		}
-		toLang := c.Query("to", "zh-CHS")
-		checkLanguages := []string{
-			strings.ToLower(toLang),
-		}
-		if fromLang != "auto" {
-			checkLanguages = append(checkLanguages, strings.ToLower(fromLang))
-		}
-		for _, v := range checkLanguages {
-			if _, exists := config.Languages[v]; !exists {
-				success = false
-				errorMessage = fmt.Sprintf("Not Support `%v` language.", v)
-				break
-			}
-		}
-		if !success {
-			return c.Write(&response.FailResponse{
-				Success: false,
-				Error: response.Error{
-					Message: errorMessage,
-				},
-			})
-		}
-
+		fromLang := c.Query("from", "")
+		toLang := c.Query("to", "")
 		c.Request.ParseForm()
 		text := strings.TrimSpace(c.Request.PostFormValue("text"))
 		if len(text) == 0 {
@@ -163,7 +136,6 @@ func main() {
 
 		doc, err := translate.Do()
 		if err == nil {
-			success = true
 			resp := &response.SuccessResponse{
 				Success: true,
 				Data: response.SuccessData{
