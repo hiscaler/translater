@@ -19,7 +19,9 @@ func (t *GoogleTranslate) Req(i int, s string, in chan<- string) (string, error)
 	if len(s) > 0 {
 		rq := url.Values{}
 		rq.Add("q", s)
-		resp, err := http.Get("https://translate.google.cn/translate_a/single?client=gtx&sl=en&tl=zh&dt=t&" + rq.Encode())
+		rq.Add("sl", t.From)
+		rq.Add("tl", t.To)
+		resp, err := http.Get("https://translate.google.cn/translate_a/single?client=gtx&dt=t&" + rq.Encode())
 		if err == nil && resp.StatusCode == 200 {
 			body, err := ioutil.ReadAll(resp.Body)
 			if err == nil {
